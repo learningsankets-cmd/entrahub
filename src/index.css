@@ -1,1 +1,27 @@
 @import "tailwindcss";
+/* Fade-in effect for the whole page */
+.page-enter {
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+  }
+  
+  .page-enter-active {
+    opacity: 1;
+  }
+  
+  /* Slide-in effect for each ServiceCard */
+  @keyframes slideIn {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .service-card-enter {
+    animation: slideIn 0.5s ease-out forwards;
+  }
+  

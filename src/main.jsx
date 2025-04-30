@@ -21,7 +21,11 @@ const msalConfig = {
 };
 
 const pca = new PublicClientApplication(msalConfig);
-
+console.log("ENV CHECK:", {
+  clientId: import.meta.env.VITE_AZURE_CLIENT_ID,
+  tenantId: import.meta.env.VITE_AZURE_TENANT_ID,
+  redirectUri: import.meta.env.VITE_AZURE_REDIRECT_URI,
+});
 const root = createRoot(document.getElementById("root"));
 root.render(
   <MsalProvider instance={pca}>

@@ -7,6 +7,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import Home from "./features/Home";
 import UserDetails from "./features/UserDetails";
+import MyRequests from "./features/MyRequests";
 const App = () => {
   return (
     <>
@@ -15,6 +16,7 @@ const App = () => {
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<Home />} />
           <Route path="/user-details" element={<UserDetails />} />
+          <Route path="/my-requests" element={<MyRequests />} />
           <Route path="/login" element={<Navigate to="/home" replace />} />
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
