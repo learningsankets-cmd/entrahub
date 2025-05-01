@@ -14,8 +14,8 @@ const msalConfig = {
     }`, // Use Vite env variable
     redirectUri:
       window.location.hostname === "localhost"
-        ? "http://localhost:5173"
-        : "https://entrahub.netlify.app",
+        ? "http://localhost:5173/"
+        : "https://entrahub.netlify.app/",
   },
   cache: {
     cacheLocation: "sessionStorage",

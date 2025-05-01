@@ -97,7 +97,7 @@ const LoginPage = () => {
             navigate("/admin");
           } else {
             console.log("Redirecting to /user-details");
-            navigate("/user-details");
+            navigate("/home");
           }
         }
       } catch (err) {
