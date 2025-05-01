@@ -12,10 +12,7 @@ const msalConfig = {
     authority: `https://login.microsoftonline.com/${
       import.meta.env.VITE_AZURE_TENANT_ID
     }`, // Use Vite env variable
-    redirectUri:
-      window.location.hostname === "localhost"
-        ? "http://localhost:5173"
-        : "https://entra-hub.vercel.app",
+    redirectUri: window.location.origin
   },
   cache: {
     cacheLocation: "sessionStorage",
