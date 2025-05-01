@@ -15,7 +15,7 @@ const msalConfig = {
     redirectUri:
       window.location.hostname === "localhost"
         ? "http://localhost:5173/"
-        : "https://entrahub.netlify.app/",
+        : "https://entrahub.onrender.com/",
   },
   cache: {
     cacheLocation: "sessionStorage",
