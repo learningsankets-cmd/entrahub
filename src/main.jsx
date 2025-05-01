@@ -14,8 +14,8 @@ const msalConfig = {
     }`, // Use Vite env variable
     redirectUri:
       window.location.hostname === "localhost"
-        ? "http://localhost:5173/"
-        : "https://entrahub.onrender.com/",
+        ? "http://localhost:5173"
+        : "https://entra-hub.vercel.app",
   },
   cache: {
     cacheLocation: "sessionStorage",
