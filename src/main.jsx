@@ -12,7 +12,10 @@ const msalConfig = {
     authority: `https://login.microsoftonline.com/${
       import.meta.env.VITE_AZURE_TENANT_ID
     }`, // Use Vite env variable
-    redirectUri: import.meta.env.VITE_AZURE_REDIRECT_URI, // Use Vite env variable
+    redirectUri:
+      window.location.hostname === "localhost"
+        ? "http://localhost:5173"
+        : "https://entrahub.netlify.app",
   },
   cache: {
     cacheLocation: "sessionStorage",

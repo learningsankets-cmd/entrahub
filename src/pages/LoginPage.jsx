@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useMsal, useIsAuthenticated } from "@azure/msal-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   Button,
   CircularProgress,
   Typography,
   Box,
-  Link,
   AppBar,
   Toolbar,
 } from "@mui/material";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
-import Header from "../layout/Header";
+import InfoDialog from "../components/InfoDialog";
 
 const LoginPage = () => {
   const { instance, accounts } = useMsal();
@@ -19,15 +18,38 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false); // Prevent multiple redirects
+  const [userRoles, setUserRoles] = useState([]);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [openPrivacy, setOpenPrivacy] = useState(false);
+  const [openTerms, setOpenTerms] = useState(false);
 
-  useEffect(() => {
-    // Check authentication status and navigate only if needed
-    if (isAuthenticated && accounts.length > 0 && window.location.pathname !== "/home" && !isRedirecting) {
-      setIsRedirecting(true);
-      navigate("/home");
+  // Function to get user roles from Microsoft Graph
+  const getUserRoles = async (accessToken) => {
+    try {
+      const response = await fetch(
+        "https://graph.microsoft.com/v1.0/me/memberOf",
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+      console.log("Raw memberOf data:", data);
+
+      if (!data.value) return [];
+
+      const roles = data.value.filter(
+        (item) => item["@odata.type"] === "#microsoft.graph.directoryRole"
+      );
+
+      return roles.map((role) => role.displayName);
+    } catch (err) {
+      console.error("Failed to fetch roles:", err);
+      return [];
     }
-  }, [isAuthenticated, accounts, navigate, isRedirecting]);
+  };
 
   const handleLogin = async () => {
     setIsLoading(true);
@@ -35,8 +57,8 @@ const LoginPage = () => {
 
     try {
       const loginRequest = {
-        scopes: ["User.Read"],
-        prompt: "select_account", // Always prompt to select an account
+        scopes: ["User.Read", "Directory.Read.All"],
+        prompt: "select_account",
       };
       await instance.loginRedirect(loginRequest);
     } catch (err) {
@@ -48,34 +70,82 @@ const LoginPage = () => {
   };
 
   useEffect(() => {
-    // Handle the redirect response after a loginRedirect
     const checkForRedirectResponse = async () => {
-      const response = await instance.handleRedirectPromise();
-      if (response) {
-        console.log("Login successful", response);
-        // You can perform actions after successful login
+      try {
+        const response = await instance.handleRedirectPromise();
+
+        if (response) {
+          console.log("Login successful:", response);
+
+          const account = response.account || accounts[0];
+
+          const tokenResponse = await instance.acquireTokenSilent({
+            scopes: ["Directory.Read.All"],
+            account,
+          });
+
+          const accessToken = tokenResponse.accessToken;
+          console.log("Access Token:", accessToken);
+
+          const roles = await getUserRoles(accessToken);
+          console.log("Fetched Roles:", roles);
+
+          setUserRoles(roles);
+
+          if (roles.some((r) => r.toLowerCase() === "global administrator")) {
+            console.log("Redirecting to /admin");
+            navigate("/admin");
+          } else {
+            console.log("Redirecting to /user-details");
+            navigate("/user-details");
+          }
+        }
+      } catch (err) {
+        console.error("Error during redirect handling:", err);
+        setError("Login failed. Please try again.");
       }
     };
+
     checkForRedirectResponse();
-  }, [instance]);
+  }, [instance, accounts, navigate]);
+
+  // Prevent redirect loop if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && accounts.length > 0 && !isRedirecting) {
+      setIsRedirecting(true);
+      navigate("/home");
+    }
+  }, [isAuthenticated, accounts, navigate, isRedirecting]);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       <AppBar
-           position="static"
-           className="h-24 !bg-white shadow-sm"
-           sx={{ minHeight: { xs: "64px", sm: "80px", md: "96px" } }}
-         >
-           <Toolbar className="container">
-             <Box className="flex items-center cursor-pointer">
-               <img
-                 src="logo1.png"
-                 alt="EntraHub Logo"
-                 className="h-52 w-max object-contain"
-               />
-             </Box>
-           </Toolbar>
-         </AppBar>
+        position="sticky"
+        Career
+        Goals
+        className="bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg"
+      >
+        <Toolbar className="container">
+          <Box className="flex items-center cursor-pointer">
+            <div className="flex">
+              <div className="flex flex-col items-start">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-wide">
+                  Entra<span className="text-yellow-400">Hub</span>
+                </h1>
+                <p className="text-xs sm:text-sm text-gray-200 italic">
+                  Empower your access.
+                </p>
+              </div>
+              <img
+                src="/entrahub.svg"
+                alt="EntraHub Logo"
+                className="h-12 sm:h-12 w-auto object-contain"
+              />
+            </div>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
       <main className="flex-1 flex items-center justify-center">
         <section className="bg-white rounded-md p-4 flex flex-col items-center justify-center gap-4 sm:gap-6 w-max text-center shadow-lg">
           <Box className="space-y-2 sm:space-y-3">
@@ -122,19 +192,19 @@ const LoginPage = () => {
           <Box className="mx-auto mt-4 sm:mt-6 max-w-[90%] sm:max-w-md text-gray-600">
             <Typography variant="body2" className="text-xs sm:text-sm">
               By logging in, you agree to our{" "}
-              <Link
-                href="/privacy-policy"
-                className="underline hover:text-blue-600"
+              <button
+                onClick={() => setOpenPrivacy(true)}
+                className="underline text-blue-600 hover:text-blue-800 cursor-pointer"
               >
                 Privacy Policy
-              </Link>{" "}
+              </button>{" "}
               and{" "}
-              <Link
-                href="/terms-of-service"
-                className="underline hover:text-blue-600"
+              <button
+                onClick={() => setOpenTerms(true)}
+                className="underline text-blue-600 hover:text-blue-800 cursor-pointer"
               >
                 Terms of Service
-              </Link>
+              </button>
               .
             </Typography>
           </Box>
@@ -151,6 +221,20 @@ const LoginPage = () => {
           </Typography>
         </Box>
       </div>
+
+      <InfoDialog
+        open={openPrivacy}
+        onClose={() => setOpenPrivacy(false)}
+        title="Privacy Policy"
+        content="We collect zero cookies, don’t spy on your clicks, and have no idea what your favorite color is. Your data is respected—because honestly, I don’t even know what to do with it. Built with good vibes and localhost energy."
+      />
+
+      <InfoDialog
+        open={openTerms}
+        onClose={() => setOpenTerms(false)}
+        title="Terms of Service"
+        content="By using this app, you agree not to summon ancient bugs, break the UI with 1000 tabs, or blame the developer (me) for your life decisions. This project was built with ☕, sleepless nights, and a desire to pad my resume. Use wisely, click responsibly, and may the bugs be ever in your favor."
+      />
     </div>
   );
 };

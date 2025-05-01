@@ -13,13 +13,6 @@ import {
 const ResourceTable = ({ requests }) => {
   return (
     <>
-      <Typography
-        variant="h4"
-        className="text-center font-bold text-gray-800 mb-8"
-      >
-        My Requests
-      </Typography>
-
       <TableContainer component={Paper} className="rounded-lg shadow-sm">
         <Table aria-label="resource table">
           <TableHead>
