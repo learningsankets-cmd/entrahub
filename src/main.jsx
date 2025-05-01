@@ -12,7 +12,10 @@ const msalConfig = {
     authority: `https://login.microsoftonline.com/${
       import.meta.env.VITE_AZURE_TENANT_ID
     }`, // Use Vite env variable
-    redirectUri: import.meta.env.VITE_AZURE_REDIRECT_URI, // Use Vite env variable
+    redirectUri:
+      window.location.hostname === "localhost"
+        ? "http://localhost:5173/"
+        : "https://entrahub.onrender.com/",
   },
   cache: {
     cacheLocation: "sessionStorage",
@@ -21,7 +24,11 @@ const msalConfig = {
 };
 
 const pca = new PublicClientApplication(msalConfig);
-
+console.log("ENV CHECK:", {
+  clientId: import.meta.env.VITE_AZURE_CLIENT_ID,
+  tenantId: import.meta.env.VITE_AZURE_TENANT_ID,
+  redirectUri: import.meta.env.VITE_AZURE_REDIRECT_URI,
+});
 const root = createRoot(document.getElementById("root"));
 root.render(
   <MsalProvider instance={pca}>
