@@ -23,7 +23,7 @@ jobs:
       - name: setup node
         uses: actions/setup-node@v4
         with: 
-          node-version: ${{matrix.node-version}}
+          node-version: '22'
 
       - name: Docker login
         uses: docker/login-action@v4
